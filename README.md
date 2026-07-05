@@ -100,17 +100,16 @@ docker compose up -d --build
 bash deploy/nginx/enable-ha-site.sh
 ```
 
-7. Issue HTTPS certificate:
+7. Issue the HTTPS certificate and enable the SNI config for `ha.clawhome.fun`:
 
 ```bash
-sudo certbot --nginx -d ha.clawhome.fun --redirect
-sudo nginx -t
-sudo systemctl reload nginx
+sudo certbot certonly --nginx -d ha.clawhome.fun
+bash deploy/nginx/enable-ha-sni.sh
 ```
 
 Nginx routes `/` to `127.0.0.1:3000`, and `/api/*`, `/health`, `/docs`, `/redoc`, `/openapi.json` to `127.0.0.1:8000`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
 
-Do not edit or disable existing Nginx sites for `clawhome.fun` or `stock.clawhome.fun`; this deployment is scoped only to `server_name ha.clawhome.fun`.
+Do not edit or disable existing Nginx sites for `clawhome.fun` or `stock.clawhome.fun`; this deployment is scoped only to `server_name ha.clawhome.fun`. The HTTPS server block uses SNI with `/etc/letsencrypt/live/ha.clawhome.fun/fullchain.pem`.
 
 ## Demo Inputs
 
