@@ -77,7 +77,7 @@ Before pushing, verify no real secrets exist in `.env.example`, `.env.production
 
 ## Singapore Server Deployment
 
-Assume an Ubuntu server with Docker and Docker Compose installed.
+Assume an Ubuntu server with Docker, Docker Compose, Nginx, and Certbot installed. Nginx owns public `80/443`; Docker only binds local ports for the web and API services.
 
 1. Point a DNS `A` record to the server public IP. The current demo domain is `ha.clawhome.fun`.
 2. Copy the project to the server or `git clone` it.
@@ -87,14 +87,31 @@ Assume an Ubuntu server with Docker and Docker Compose installed.
 cp .env.production.example .env
 ```
 
-4. Edit `.env` with the real domain and API keys. For this deployment, keep `APP_DOMAIN=ha.clawhome.fun` and `CORS_ORIGINS=https://ha.clawhome.fun`.
+4. Edit `.env` with the real API keys. For this deployment, keep `CORS_ORIGINS=https://ha.clawhome.fun`, `WEB_PORT=3000`, and `API_PORT=8000`.
 5. Start the stack:
 
 ```bash
 docker compose up -d --build
 ```
 
-Caddy listens on ports `80` and `443`, reverse proxies the web app and `/api/*`, and automatically provisions HTTPS certificates for `APP_DOMAIN`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
+6. Install the Nginx reverse proxy:
+
+```bash
+sudo cp deploy/nginx/ha.clawhome.fun.conf /etc/nginx/sites-available/stratpilot.conf
+sudo ln -sf /etc/nginx/sites-available/stratpilot.conf /etc/nginx/sites-enabled/stratpilot.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+7. Issue HTTPS certificate:
+
+```bash
+sudo certbot --nginx -d ha.clawhome.fun --redirect
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Nginx routes `/` to `127.0.0.1:3000`, and `/api/*`, `/health`, `/docs`, `/redoc`, `/openapi.json` to `127.0.0.1:8000`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
 
 ## Demo Inputs
 

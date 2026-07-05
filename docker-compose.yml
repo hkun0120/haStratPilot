@@ -19,34 +19,16 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     volumes:
       - api_runtime:/app/runtime
-    expose:
-      - "8000"
+    ports:
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
     restart: unless-stopped
-    expose:
-      - "3000"
-
-  caddy:
-    image: caddy:2.8-alpine
-    restart: unless-stopped
-    depends_on:
-      - api
-      - web
-    environment:
-      APP_DOMAIN: ${APP_DOMAIN:-localhost}
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-3000}:3000"
 
 volumes:
   api_runtime:
-  caddy_data:
-  caddy_config:
