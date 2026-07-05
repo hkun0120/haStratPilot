@@ -87,7 +87,7 @@ Assume an Ubuntu server with Docker, Docker Compose, Nginx, and Certbot installe
 cp .env.production.example .env
 ```
 
-4. Edit `.env` with the real API keys. For this deployment, keep `CORS_ORIGINS=https://ha.clawhome.fun`, `WEB_PORT=3000`, and `API_PORT=8000`.
+4. Edit `.env` with the real API keys. For this deployment, keep `CORS_ORIGINS=https://ha.clawhome.fun`, `WEB_PORT=3100`, and `API_PORT=8100`.
 5. Start the stack:
 
 ```bash
@@ -103,11 +103,11 @@ bash deploy/nginx/enable-ha-site.sh
 7. Issue the HTTPS certificate and enable the SNI config for `ha.clawhome.fun`:
 
 ```bash
-sudo certbot certonly --nginx -d ha.clawhome.fun
+sudo certbot certonly --webroot -w /var/www/letsencrypt -d ha.clawhome.fun --cert-name ha.clawhome.fun
 bash deploy/nginx/enable-ha-sni.sh
 ```
 
-Nginx routes `/` to `127.0.0.1:3000`, and `/api/*`, `/health`, `/docs`, `/redoc`, `/openapi.json` to `127.0.0.1:8000`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
+Nginx routes public `ha.clawhome.fun:443` through stream SNI to `127.0.0.1:9445`, then routes `/` to `127.0.0.1:3100`, and `/api/*`, `/health`, `/docs`, `/redoc`, `/openapi.json` to `127.0.0.1:8100`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
 
 Do not edit or disable existing Nginx sites for `clawhome.fun` or `stock.clawhome.fun`; this deployment is scoped only to `server_name ha.clawhome.fun`. The HTTPS server block uses SNI with `/etc/letsencrypt/live/ha.clawhome.fun/fullchain.pem`.
 

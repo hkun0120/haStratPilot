@@ -1,12 +1,14 @@
 # Nginx Reverse Proxy
 
-StratPilot runs two local Docker ports:
+StratPilot runs two local app ports:
 
-- Web: `127.0.0.1:3000`
-- API: `127.0.0.1:8000`
+- Web: `127.0.0.1:3100`
+- API: `127.0.0.1:8100`
+- HTTPS SNI backend: `127.0.0.1:9445`
 
 Nginx owns public `80/443` and routes:
 
+- public `ha.clawhome.fun:443` -> Nginx stream SNI -> `127.0.0.1:9445`
 - `/` -> web
 - `/api/*` -> API
 - `/health`, `/docs`, `/redoc`, `/openapi.json` -> API
@@ -41,14 +43,14 @@ bash deploy/nginx/enable-ha-site.sh
 Issue a certificate for this exact subdomain without asking Certbot to rewrite other site configs:
 
 ```bash
-sudo certbot certonly --nginx -d ha.clawhome.fun
+sudo certbot certonly --webroot -w /var/www/letsencrypt -d ha.clawhome.fun --cert-name ha.clawhome.fun
 bash deploy/nginx/enable-ha-sni.sh
 ```
 
 The SNI config uses:
 
 ```nginx
-listen 443 ssl http2;
+listen 127.0.0.1:9445 ssl http2;
 server_name ha.clawhome.fun;
 ssl_certificate /etc/letsencrypt/live/ha.clawhome.fun/fullchain.pem;
 ssl_certificate_key /etc/letsencrypt/live/ha.clawhome.fun/privkey.pem;
@@ -67,8 +69,8 @@ Then verify that the local app ports are up on the server:
 
 ```bash
 docker compose ps
-curl -I http://127.0.0.1:3000
-curl -fsS http://127.0.0.1:8000/health
+curl -I http://127.0.0.1:3100
+curl -fsS http://127.0.0.1:8100/health
 ```
 
 Verify the HTTPS/SNI certificate:
@@ -82,6 +84,7 @@ If the default page still appears after the site is enabled, check for duplicate
 
 ```bash
 sudo nginx -T | grep -n -B 2 -A 4 "ha.clawhome.fun"
+sudo nginx -T | grep -n "ha.clawhome.fun 127.0.0.1:9445"
 curl -I -H "Host: ha.clawhome.fun" http://127.0.0.1
 sudo nginx -t
 sudo systemctl reload nginx

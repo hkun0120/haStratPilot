@@ -29,5 +29,5 @@ sudo systemctl reload nginx
 
 echo "Enabled ${DOMAIN}. Next checks:"
 echo "  curl -I http://${DOMAIN}"
-echo "  curl -fsS http://127.0.0.1:3000 | head"
-echo "  curl -fsS http://127.0.0.1:8000/health"
+echo "  curl -fsS http://127.0.0.1:3100 | head"
+echo "  curl -fsS http://127.0.0.1:8100/health"
