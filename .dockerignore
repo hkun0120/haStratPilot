@@ -1,0 +1,17 @@
+.DS_Store
+.git
+.venv
+node_modules
+apps/web/node_modules
+apps/web/.next
+apps/web/out
+__pycache__
+*.pyc
+.pytest_cache
+.env
+.env.*
+!.env.example
+!.env.production.example
+apps/api/alphaflow/storage/*.json
+data/cache/*.csv
+data/cache/*.json

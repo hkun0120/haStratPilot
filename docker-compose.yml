@@ -1,0 +1,52 @@
+name: stratpilot
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    environment:
+      APP_NAME: StratPilot
+      VOLC_ARK_API_KEY: ${VOLC_ARK_API_KEY:-}
+      VOLC_ARK_MODEL: ${VOLC_ARK_MODEL:-doubao-seed-2-1-pro-260628}
+      VOLC_ARK_BASE_URL: ${VOLC_ARK_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      QVERIS_API_KEY: ${QVERIS_API_KEY:-}
+      QVERIS_BASE_URL: ${QVERIS_BASE_URL:-https://qveris.ai/api/v1}
+      DATA_CACHE_DIR: /app/runtime/cache
+      LEDGER_PATH: /app/runtime/ledger.json
+      RUNTIME_CONFIG_PATH: /app/runtime/runtime_config.json
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+    volumes:
+      - api_runtime:/app/runtime
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  api_runtime:
+  caddy_data:
+  caddy_config:

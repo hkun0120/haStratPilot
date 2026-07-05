@@ -1,0 +1,21 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.production.example
+node_modules/
+.npm-cache/
+.next/
+dist/
+build/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+apps/api/alphaflow/storage/*.json
+data/cache/*.csv
+data/cache/*.json
+火山引擎 key.md
+*key*.md
+*密钥*.md
+*秘钥*.md
