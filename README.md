@@ -94,13 +94,10 @@ cp .env.production.example .env
 docker compose up -d --build
 ```
 
-6. Install the Nginx reverse proxy:
+6. Install the Nginx reverse proxy for `ha.clawhome.fun` only:
 
 ```bash
-sudo cp deploy/nginx/ha.clawhome.fun.conf /etc/nginx/sites-available/stratpilot.conf
-sudo ln -sf /etc/nginx/sites-available/stratpilot.conf /etc/nginx/sites-enabled/stratpilot.conf
-sudo nginx -t
-sudo systemctl reload nginx
+bash deploy/nginx/enable-ha-site.sh
 ```
 
 7. Issue HTTPS certificate:
@@ -112,6 +109,8 @@ sudo systemctl reload nginx
 ```
 
 Nginx routes `/` to `127.0.0.1:3000`, and `/api/*`, `/health`, `/docs`, `/redoc`, `/openapi.json` to `127.0.0.1:8000`. After DNS resolves to the Singapore server, the app should be available at `https://ha.clawhome.fun`.
+
+Do not edit or disable existing Nginx sites for `clawhome.fun` or `stock.clawhome.fun`; this deployment is scoped only to `server_name ha.clawhome.fun`.
 
 ## Demo Inputs
 

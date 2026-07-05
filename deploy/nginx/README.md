@@ -11,6 +11,8 @@ Nginx owns public `80/443` and routes:
 - `/api/*` -> API
 - `/health`, `/docs`, `/redoc`, `/openapi.json` -> API
 
+This config is intentionally scoped to `server_name ha.clawhome.fun;`. Do not remove or edit existing Nginx sites for `clawhome.fun` or `stock.clawhome.fun`.
+
 ## Install
 
 ```bash
@@ -31,10 +33,7 @@ docker compose up -d --build
 ## Enable Nginx Site
 
 ```bash
-sudo cp deploy/nginx/ha.clawhome.fun.conf /etc/nginx/sites-available/stratpilot.conf
-sudo ln -sf /etc/nginx/sites-available/stratpilot.conf /etc/nginx/sites-enabled/stratpilot.conf
-sudo nginx -t
-sudo systemctl reload nginx
+bash deploy/nginx/enable-ha-site.sh
 ```
 
 ## Enable HTTPS
@@ -45,11 +44,28 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-If the domain still shows the Ubuntu default page or a mismatched certificate, disable the conflicting default site and rerun Certbot:
+If `http://ha.clawhome.fun/` still shows the Ubuntu default page, do not delete unrelated sites. Check whether the `ha.clawhome.fun` server block is loaded:
 
 ```bash
-sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -T | grep -n "server_name ha.clawhome.fun"
+sudo ls -l /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
-sudo certbot --nginx -d ha.clawhome.fun --redirect
+```
+
+Then verify that the local app ports are up on the server:
+
+```bash
+docker compose ps
+curl -I http://127.0.0.1:3000
+curl -fsS http://127.0.0.1:8000/health
+```
+
+If the default page still appears after the site is enabled, check for duplicate `ha.clawhome.fun` server blocks or a missed reload. An exact `server_name ha.clawhome.fun` should win over the default site when loaded correctly.
+
+```bash
+sudo nginx -T | grep -n -B 2 -A 4 "ha.clawhome.fun"
+curl -I -H "Host: ha.clawhome.fun" http://127.0.0.1
+sudo nginx -t
+sudo systemctl reload nginx
 ```
